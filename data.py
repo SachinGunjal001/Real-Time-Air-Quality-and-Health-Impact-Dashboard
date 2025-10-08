@@ -4,12 +4,12 @@ import requests
 from datetime import datetime
 
 # -------------------------------------------------------------------
-# 1️⃣ Your OpenWeatherMap API key
+# 1 Your OpenWeatherMap API key
 # -------------------------------------------------------------------
 api_key = "c623d8f4c6c0bc25a43e29e666859fb3"
 
 # -------------------------------------------------------------------
-# 2️⃣ Global list for city locations
+# 2 Global list for city locations
 # -------------------------------------------------------------------
 locations = []
 
@@ -18,7 +18,7 @@ def add_location(city, lat, lon):
     locations.append({"city": city, "lat": lat, "lon": lon})
 
 # -------------------------------------------------------------------
-# 3️⃣ Add 100 cities worldwide
+# 3 Add 100 cities worldwide
 # -------------------------------------------------------------------
 add_location("New York", 40.7128, -74.0060)
 add_location("Los Angeles", 34.0522, -118.2437)
@@ -124,7 +124,7 @@ add_location("Tel Aviv", 32.0853, 34.7818)
 add_location("Jerusalem", 31.7683, 35.2137)
 
 # -------------------------------------------------------------------
-# 4️⃣ Function to fetch weather data safely
+# 4 Function to fetch weather data safely
 # -------------------------------------------------------------------
 def get_weather_data(lat, lon, city):
     url = 'https://api.openweathermap.org/data/2.5/weather'
@@ -133,7 +133,7 @@ def get_weather_data(lat, lon, city):
 
     # Handle failed responses
     if response.get("cod") != 200:
-        print(f"⚠️ API Error for {city}: {response.get('message', 'Unknown error')}")
+        print(f" API Error for {city}: {response.get('message', 'Unknown error')}")
         return None
 
     # Extract main fields
@@ -147,7 +147,7 @@ def get_weather_data(lat, lon, city):
     }
 
 # -------------------------------------------------------------------
-# 5️⃣ Fetch and combine all data
+# 5 Fetch and combine all data
 # -------------------------------------------------------------------
 weather_data = []
 for loc in locations:
@@ -157,11 +157,11 @@ for loc in locations:
         weather_data.append(data)
 
 df = pd.DataFrame(weather_data)
-print(f"\n✅ Total records fetched: {len(df)}")
+print(f"\n Total records fetched: {len(df)}")
 print(df.head())
 
 # -------------------------------------------------------------------
-# 6️⃣ Save to MS SQL Server (Windows Authentication)
+# 6 Save to MS SQL Server (Windows Authentication)
 # -------------------------------------------------------------------
 def save_to_mssql(df, server, database, table_name):
     try:
@@ -199,13 +199,13 @@ def save_to_mssql(df, server, database, table_name):
         conn.commit()
         cursor.close()
         conn.close()
-        print(f"\n✅ Data inserted successfully into table: {table_name}")
+        print(f"\n Data inserted successfully into table: {table_name}")
 
     except Exception as e:
-        print(f"\n❌ Error saving to MSSQL: {e}")
+        print(f"\n Error saving to MSSQL: {e}")
 
 # -------------------------------------------------------------------
-# 7️⃣ Run save operation
+# 7 Run save operation
 # -------------------------------------------------------------------
 if not df.empty:
     server = r"SACHIN\SQLEXPRESS"
