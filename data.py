@@ -1,20 +1,27 @@
-import pyodbc
-import pandas as pd
 import requests
+import pandas as pd
+import pyodbc
 from datetime import datetime
 
-#  OpenWeatherMap API key
+# ----------------------------
+# ----------------------------
 api_key = "c623d8f4c6c0bc25a43e29e666859fb3"
+server = r"SACHIN\SQLEXPRESS"
+database = "AirQuality"
+table_name = "WeatherData"
 
-# Global list for city locations
+# ----------------------------
+# ----------------------------
 locations = []
 
 def add_location(city, lat, lon):
-    """Add new city with latitude & longitude to global list"""
+    """
+    Add a new city to the locations list.
+    """
     locations.append({"city": city, "lat": lat, "lon": lon})
+    print(f" Added location: {city} (Lat: {lat}, Lon: {lon})")
 
-# Adding 100 cities worldwide
-
+# Add cities here (you can expand later)
 add_location("New York", 40.7128, -74.0060)
 add_location("Los Angeles", 34.0522, -118.2437)
 add_location("Chicago", 41.8781, -87.6298)
@@ -118,91 +125,90 @@ add_location("Muscat", 23.5880, 58.3829)
 add_location("Tel Aviv", 32.0853, 34.7818)
 add_location("Jerusalem", 31.7683, 35.2137)
 
-
-
-# Function to fetch weather data safely
-
+# ----------------------------
+# ----------------------------
 def get_weather_data(lat, lon, city):
-    url = 'https://api.openweathermap.org/data/2.5/weather'
-    params = {'lat': lat, 'lon': lon, 'units': 'metric', 'appid': api_key}
-    response = requests.get(url, params=params).json()
+    try:
+        url = "https://api.openweathermap.org/data/2.5/weather"
+        params = {"lat": lat, "lon": lon, "appid": api_key, "units": "metric"}
+        response = requests.get(url, params=params)
+        data = response.json()
 
-    # Handle failed responses
-    if response.get("cod") != 200:
-        print(f" API Error for {city}: {response.get('message', 'Unknown error')}")
+        if response.status_code == 200 and "main" in data:
+            return {
+                "City": city,
+                "Temperature": data["main"]["temp"],
+                "feels_like": data["main"]["feels_like"],
+                "Humidity": data["main"]["humidity"],
+                "Pressure": data["main"]["pressure"],
+                "recorded_at": datetime.now()  #  Matches SQL column
+            }
+        else:
+            print(f"API error for {city}: {data}")
+            return None
+    except Exception as e:
+        print(f" Error fetching data for {city}: {e}")
         return None
 
-    # Extract main fields
-    return {
-        'city': city,
-        'temperature': response['main']['temp'],
-        'feels_like': response['main']['feels_like'],
-        'humidity': response['main']['humidity'],
-        'pressure': response['main']['pressure'],
-        'recorded_at': datetime.now()
-    }
-
-
-# Fetch and combine all data
-
-weather_data = []
-for loc in locations:
-    print(f"Fetching weather for {loc['city']}...")
-    data = get_weather_data(loc['lat'], loc['lon'], loc['city'])
-    if data:
-        weather_data.append(data)
-
-df = pd.DataFrame(weather_data)
-print(f"\n Total records fetched: {len(df)}")
-print(df.head())
-
-#  Save to MS SQL Server (Windows Authentication)
-def save_to_mssql(df, server, database, table_name):
+# ----------------------------
+# ----------------------------
+def save_to_mssql(df):
     try:
         conn_str = (
-            f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-            f"SERVER={server};"
-            f"DATABASE={database};"
-            f"Trusted_Connection=yes;"
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            f"SERVER={server};DATABASE={database};Trusted_Connection=yes;"
         )
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
         # Create table if not exists
-        create_table_query = f"""
+        cursor.execute(f"""
         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{table_name}' AND xtype='U')
         CREATE TABLE {table_name} (
-            id INT IDENTITY(1,1) PRIMARY KEY,
-            city NVARCHAR(100),
-            temperature FLOAT NOT NULL,
-            feels_like FLOAT NOT NULL,
-            humidity INT NOT NULL CHECK (humidity BETWEEN 0 AND 100),
-            pressure INT NOT NULL CHECK (pressure > 0),
+            City VARCHAR(50) NOT NULL,
+            Temperature DECIMAL(5,2) NOT NULL,
+            feels_like DECIMAL(5,2) NOT NULL,
+            Humidity INT CHECK (Humidity BETWEEN 0 AND 100) NOT NULL,
+            Pressure INT CHECK (Pressure > 0) NOT NULL,
             recorded_at DATETIME DEFAULT GETDATE()
         );
-        """
-        cursor.execute(create_table_query)
+        """)
 
-        # Insert new records
+        # Insert each record into SQL
         for _, row in df.iterrows():
-            cursor.execute(
-                f"INSERT INTO {table_name} (city, temperature, feels_like, humidity, pressure, recorded_at) VALUES (?, ?, ?, ?, ?, ?)",
-                row['city'], row['temperature'], row['feels_like'], row['humidity'], row['pressure'], row['recorded_at']
-            )
+            cursor.execute(f"""
+                INSERT INTO {table_name} (City, Temperature, feels_like, Humidity, Pressure, recorded_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            row["City"], row["Temperature"], row["feels_like"],
+            row["Humidity"], row["Pressure"], row["recorded_at"])
 
         conn.commit()
+        print(f" Successfully inserted {len(df)} rows into {table_name}")
         cursor.close()
         conn.close()
-        print(f"\n Data inserted successfully into table: {table_name}")
 
     except Exception as e:
-        print(f"\n Error saving to MSSQL: {e}")
+        print(f" Error saving to MSSQL: {e}")
 
-#  Run save operation
-if not df.empty:
-    server = r"SACHIN\SQLEXPRESS"
-    database = "AirQuality"
-    table_name = "WeatherData"
-    save_to_mssql(df, server, database, table_name)
-else:
-    print("\n❌ No data fetched — check your API or internet connection.")
+# ----------------------------
+# ----------------------------
+def run_etl():
+    weather_data = []
+    for loc in locations:
+        print(f"Fetching weather data for {loc['city']}...")
+        record = get_weather_data(loc["lat"], loc["lon"], loc["city"])
+        if record:
+            weather_data.append(record)
+
+    if weather_data:
+        df = pd.DataFrame(weather_data)
+        save_to_mssql(df)
+    else:
+        print(" No weather data fetched — check API or internet connection.")
+
+# ----------------------------
+#  RUN SCRIPT
+# ----------------------------
+if __name__ == "__main__":
+    run_etl()
