@@ -7,5 +7,5 @@ CREATE TABLE WeatherData (
     recorded_at DATETIME DEFAULT GETDATE()    
 );
 
-select top 102 * from WeatherData
+select top 150 * from WeatherData
 order by recorded_at desc;
