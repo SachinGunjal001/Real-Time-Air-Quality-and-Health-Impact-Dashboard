@@ -22,3 +22,15 @@ The system cannot find the path specified.
 [19-10-2025  8:55:01.77] ❌ Python Script failed with Error Code 3 
 [19-10-2025  8:55:01.78] Python Job Completed. 
 ---------------------------------------------------- 
+---------------------------------------------------- 
+[25-10-2025  8:55:02.74] Starting Python ETL Job 
+The system cannot find the path specified.
+[25-10-2025  8:55:02.75] ❌ Python Script failed with Error Code 3 
+[25-10-2025  8:55:02.77] Python Job Completed. 
+---------------------------------------------------- 
+---------------------------------------------------- 
+[26-10-2025  8:55:02.35] Starting Python ETL Job 
+The system cannot find the path specified.
+[26-10-2025  8:55:02.38] ❌ Python Script failed with Error Code 3 
+[26-10-2025  8:55:02.39] Python Job Completed. 
+---------------------------------------------------- 
