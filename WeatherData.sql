@@ -9,3 +9,8 @@ CREATE TABLE WeatherData (
 
 select top 150 * from WeatherData
 order by recorded_at desc;
+
+
+select * from WeatherData
+
+select count(*) from WeatherData
