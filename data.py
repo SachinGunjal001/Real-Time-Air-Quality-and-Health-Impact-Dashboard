@@ -19,9 +19,7 @@ def add_location(city, lat, lon):
     Add a new city to the locations list.
     """
     locations.append({"city": city, "lat": lat, "lon": lon})
-    print(f" Added location: {city} (Lat: {lat}, Lon: {lon})")
 
-# Add cities here (you can expand later)
 add_location("New York", 40.7128, -74.0060)
 add_location("Los Angeles", 34.0522, -118.2437)
 add_location("Chicago", 41.8781, -87.6298)
@@ -126,7 +124,6 @@ add_location("Tel Aviv", 32.0853, 34.7818)
 add_location("Jerusalem", 31.7683, 35.2137)
 
 # ----------------------------
-# ----------------------------
 def get_weather_data(lat, lon, city):
     try:
         url = "https://api.openweathermap.org/data/2.5/weather"
@@ -161,7 +158,7 @@ def save_to_mssql(df):
         conn = pyodbc.connect(conn_str)
         cursor = conn.cursor()
 
-        # Create table if not exists
+        
         cursor.execute(f"""
         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{table_name}' AND xtype='U')
         CREATE TABLE {table_name} (
