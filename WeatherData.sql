@@ -1,3 +1,5 @@
+use AirQuality
+
 CREATE TABLE WeatherData (
 	City VARCHAR(50) NOT NULL,
     Temperature DECIMAL(5,2) NOT NULL,         
