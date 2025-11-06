@@ -1,0 +1,6 @@
+---------------------------------------------------- 
+[06-11-2025  8:55:01.58] Starting Python ETL Job 
+The system cannot find the path specified.
+[06-11-2025  8:55:01.60] ❌ Python Script failed with Error Code 3 
+[06-11-2025  8:55:01.61] Python Job Completed. 
+---------------------------------------------------- 
